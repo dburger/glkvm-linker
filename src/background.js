@@ -167,14 +167,6 @@ async function sendLinkToGlkvm(url, appendNewline = true) {
     });
 
     if (visible.length === 1) return visible[0];
-    if (visible.length > 1) {
-      const dialogArea = visible.find(ta =>
-        ta.closest('dialog, [role="dialog"], .modal, .dialog, .drawer, .clipboard, .toolbox')
-      );
-      if (dialogArea) return dialogArea;
-      return visible[visible.length - 1];
-    }
-
     return textareas[0];
   }
 
