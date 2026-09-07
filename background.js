@@ -305,26 +305,15 @@ async function automateGlkvmActions(url, appendNewline = true) {
     return textareas[0];
   }
 
-  // Set textarea value compatible with React/Vue/vanilla
+  // Set textarea value and notify input/change listeners
   function pasteIntoTextarea(textarea, value) {
     try {
       textarea.focus();
     } catch {}
 
-    // Clear any existing content first
-    textarea.value = '';
-
-    const nativeSetter = Object.getOwnPropertyDescriptor(
-      window.HTMLTextAreaElement.prototype,
-      'value'
-    )?.set;
-    if (nativeSetter) {
-      nativeSetter.call(textarea, value);
-    } else {
-      textarea.value = value;
-    }
-    textarea.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
-    textarea.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+    textarea.value = value;
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    textarea.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   // -------------------------------------------------------------
