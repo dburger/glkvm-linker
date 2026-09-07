@@ -16,54 +16,45 @@ function norm(s) {
 }
 
 function findElementByText(targetText, container = document) {
+  if (!container) return null;
   const target = norm(targetText);
 
-  function searchRoot(root) {
-    if (!root) return null;
-
-    // 1. Check interactive elements
-    const clickables = root.querySelectorAll('button, [role="button"], a, input[type="button"], input[type="submit"]');
-    for (const el of clickables) {
-      if (norm(el.textContent) === target || norm(el.value) === target) {
-        return el;
-      }
+  // 1. Check interactive elements for exact match
+  const clickables = container.querySelectorAll('button, [role="button"], a, input[type="button"], input[type="submit"]');
+  for (const el of clickables) {
+    if (norm(el.textContent) === target || norm(el.value) === target) {
+      console.log("found here");
+      return el;
     }
-
-    // 2. Search all elements, finding the deepest element with the exact text
-    const all = root.querySelectorAll('*');
-    for (const el of all) {
-      if (el.shadowRoot) {
-        const shadowFound = searchRoot(el.shadowRoot);
-        if (shadowFound) return shadowFound;
-      }
-      if (norm(el.textContent) === target) {
-        let childHasText = false;
-        for (const child of el.children) {
-          if (norm(child.textContent) === target) {
-            childHasText = true;
-            break;
-          }
-        }
-        if (!childHasText) {
-          return el.closest('button, [role="button"], a') || el;
-        }
-      }
-    }
-    return null;
   }
 
-  // Pass 1: exact match
-  const exact = searchRoot(container);
-  if (exact) return exact;
+  console.log("going to fallback");
 
-  // Pass 2: aria-label or title attributes
+  // 2. Search all elements, finding the deepest element with the exact text
+  const all = container.querySelectorAll('*');
+  for (const el of all) {
+    if (norm(el.textContent) === target) {
+      let childHasText = false;
+      for (const child of el.children) {
+        if (norm(child.textContent) === target) {
+          childHasText = true;
+          break;
+        }
+      }
+      if (!childHasText) {
+        return el.closest('button, [role="button"], a') || el;
+      }
+    }
+  }
+
+  // 3. aria-label or title attributes
   const attrMatch = container.querySelector(`[aria-label="${targetText}"], [title="${targetText}"]`);
   if (attrMatch) return attrMatch;
 
-  // Pass 3: case-insensitive match fallback
+  // 4. Case-insensitive match fallback
   const targetLower = target.toLowerCase();
-  const all = container.querySelectorAll('button, [role="button"], a, div, span');
-  for (const el of all) {
+  const candidates = container.querySelectorAll('button, [role="button"], a, div, span');
+  for (const el of candidates) {
     if (norm(el.textContent).toLowerCase() === targetLower) {
       return el.closest('button, [role="button"], a') || el;
     }
@@ -102,17 +93,8 @@ function clickElement(el) {
 }
 
 function findTextarea(root = document) {
+  if (!root) return null;
   const textareas = Array.from(root.querySelectorAll('textarea'));
-
-  // Check shadow roots
-  const all = root.querySelectorAll('*');
-  for (const el of all) {
-    if (el.shadowRoot) {
-      const inShadow = findTextarea(el.shadowRoot);
-      if (inShadow) return inShadow;
-    }
-  }
-
   if (textareas.length === 0) return null;
 
   // Filter for visible elements
