@@ -1,7 +1,7 @@
 // GLKVM Linker - Background Service Worker
 
-var CONTEXT_MENU_ID = "glkvm-send-link";
-var DEFAULT_DOMAIN = "glkvm.local";
+const CONTEXT_MENU_ID = "glkvm-send-link";
+const DEFAULT_DOMAIN = "glkvm.local";
 var isProcessingLink = false;
 
 // =============================================================
@@ -201,16 +201,7 @@ async function sendLinkToGlkvm(url, appendNewline = true) {
   };
 }
 
-// If executing inside a browser tab, expose helpers and workflow to window
-if (typeof window !== 'undefined') {
-  window.norm = norm;
-  window.findElementByText = findElementByText;
-  window.waitForElement = waitForElement;
-  window.clickElement = clickElement;
-  window.findTextarea = findTextarea;
-  window.pasteIntoTextarea = pasteIntoTextarea;
-  window.sendLinkToGlkvm = sendLinkToGlkvm;
-}
+
 
 // =============================================================
 // Background Service Worker Functions
