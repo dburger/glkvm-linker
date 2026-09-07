@@ -21,7 +21,7 @@ When you right-click on any hyperlink and select **"Send to GLKVM"**, the extens
 glkvm-linker/
 ├── src/                # Chrome extension source code
 │   ├── manifest.json   # Manifest V3 extension configuration
-│   ├── background.js   # Background service worker (context menu & tab automation)
+│   ├── background.js   # Background service worker & tab automation
 │   ├── popup/          # Extension action popup
 │   │   ├── popup.html  # Status monitor, quick send, and configuration UI
 │   │   ├── popup.css   # Dark-mode styling matching KVM consoles
