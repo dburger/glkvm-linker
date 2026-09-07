@@ -11,8 +11,6 @@
     "storage"
   ],
   "host_permissions": [
-    "*://glkvm.local/*",
-    "*://*.glkvm.local/*",
     "<all_urls>"
   ],
   "background": {
