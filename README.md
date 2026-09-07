@@ -19,17 +19,18 @@ When you right-click on any hyperlink and select **"Send to GLKVM"**, the extens
 
 ```text
 glkvm-linker/
-├── manifest.json       # Manifest V3 extension configuration
-├── background.js       # Background service worker (context menu & tab automation)
-├── popup/              # Extension action popup
-│   ├── popup.html      # Status monitor, quick send, and configuration UI
-│   ├── popup.css       # Dark-mode styling matching KVM consoles
-│   └── popup.js        # Live connection check & settings management
-├── icons/              # Extension icons (16, 32, 48, 128 px)
-│   ├── icon16.png
-│   ├── icon32.png
-│   ├── icon48.png
-│   └── icon128.png
+├── src/                # Chrome extension source code
+│   ├── manifest.json   # Manifest V3 extension configuration
+│   ├── background.js   # Background service worker (context menu & tab automation)
+│   ├── popup/          # Extension action popup
+│   │   ├── popup.html  # Status monitor, quick send, and configuration UI
+│   │   ├── popup.css   # Dark-mode styling matching KVM consoles
+│   │   └── popup.js    # Live connection check & settings management
+│   └── icons/          # Extension icons (16, 32, 48, 128 px)
+│       ├── icon16.png
+│       ├── icon32.png
+│       ├── icon48.png
+│       └── icon128.png
 ├── test/               # Local testing suite
 │   ├── mock-glkvm.html # Mock GLKVM web console for verification
 │   └── run-test.js     # Automated headless Chrome CDP test runner
@@ -47,7 +48,7 @@ glkvm-linker/
    ```
 3. Enable **Developer mode** using the toggle switch in the top-right corner.
 4. Click the **Load unpacked** button in the top-left corner.
-5. Select this directory (`/home/dburger/src/glkvm-linker`).
+5. Select the `src` directory (`/home/dburger/src/glkvm-linker/src`).
 6. The **GLKVM Linker** extension is now installed and active!
 
 ---

@@ -34,7 +34,7 @@ async function getPageDebuggerUrl(port = 9222) {
 async function run() {
   const tmpProfile = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-test-profile-'));
   const mockHtmlPath = path.resolve(__dirname, 'mock-glkvm.html');
-  const bgJsPath = path.resolve(__dirname, '../background.js');
+  const bgJsPath = path.resolve(__dirname, '../src/background.js');
   const bgContent = fs.readFileSync(bgJsPath, 'utf8');
 
   // Extract automateGlkvmActions function from background.js
