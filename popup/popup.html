@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLKVM Linker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="header">
+    <div class="logo-area">
+      <img src="../icons/icon32.png" alt="Logo" class="logo-img">
+      <div>
+        <h1 class="title">GLKVM Linker</h1>
+        <span class="version">v1.0.0</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Status Section -->
+    <section class="card">
+      <div class="card-header">
+        <span class="card-title">GLKVM Tab Status</span>
+        <button id="refresh-status-btn" class="icon-btn" title="Refresh status">&#x21bb;</button>
+      </div>
+      <div id="status-container" class="status-box status-loading">
+        <span class="status-dot"></span>
+        <span id="status-text">Checking for open GLKVM tab...</span>
+      </div>
+      <div id="tab-info" class="tab-info hidden"></div>
+      <div id="open-glkvm-container" class="open-action hidden">
+        <button id="open-glkvm-btn" class="btn btn-outline">Open GLKVM Tab</button>
+      </div>
+    </section>
+
+    <!-- Quick Test Section -->
+    <section class="card">
+      <span class="card-title">Quick Send URL</span>
+      <div class="input-group">
+        <input type="url" id="test-url-input" placeholder="https://example.com/..." class="text-input">
+        <button id="send-test-btn" class="btn btn-primary">Send</button>
+      </div>
+      <div id="test-result" class="result-msg hidden"></div>
+    </section>
+
+    <!-- Settings Section -->
+    <section class="card">
+      <span class="card-title">Settings</span>
+      
+      <div class="form-group">
+        <label for="glkvm-domain">GLKVM Target Domain / IP:</label>
+        <input type="text" id="glkvm-domain" class="text-input" placeholder="glkvm.local">
+      </div>
+
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="switch-tab-toggle">
+          <span>Switch to GLKVM tab after sending</span>
+        </label>
+      </div>
+
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="append-newline-toggle" checked>
+          <span>Append newline (Enter) to pasted URL</span>
+        </label>
+      </div>
+
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="notifications-toggle" checked>
+          <span>Show notification toasts</span>
+        </label>
+      </div>
+
+      <button id="save-settings-btn" class="btn btn-secondary">Save Settings</button>
+      <div id="settings-status" class="result-msg hidden"></div>
+    </section>
+
+    <!-- Instructions / Guide -->
+    <footer class="footer">
+      <div class="hint">
+        <strong>How to use:</strong> Right-click any link on any webpage and select <em>"Send to GLKVM"</em>.
+      </div>
+    </footer>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>

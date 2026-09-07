@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GL.iNet Comet KVM - Simulation Console</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #0b1329;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 24px;
+    }
+    header {
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      color: #38bdf8;
+    }
+    .badge {
+      background: #0284c7;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      background: #1e293b;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .kvm-btn {
+      background: #334155;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+    .kvm-btn:hover {
+      background: #475569;
+    }
+    .screen-area {
+      background: #020617;
+      border: 2px solid #1e293b;
+      border-radius: 8px;
+      height: 350px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .remote-display {
+      color: #64748b;
+      font-size: 14px;
+    }
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      padding: 20px;
+      width: 440px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .modal-title {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 15px;
+      color: #f1f5f9;
+    }
+    textarea.clipboard-input {
+      width: 100%;
+      box-sizing: border-box;
+      height: 90px;
+      background: #0f172a;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      color: #f8fafc;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 13px;
+      resize: vertical;
+      margin-bottom: 14px;
+    }
+    textarea.clipboard-input:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+    .btn-paste-remote {
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 9px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .btn-paste-remote:hover {
+      background: #0369a1;
+    }
+    .btn-close {
+      background: transparent;
+      border: 1px solid #475569;
+      color: #94a3b8;
+      padding: 9px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .log-panel {
+      margin-top: 24px;
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .log-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #9ca3af;
+      margin-bottom: 10px;
+    }
+    .log-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .log-item {
+      padding: 6px 0;
+      border-bottom: 1px solid #1f2937;
+      color: #10b981;
+    }
+    .test-links-panel {
+      margin-top: 20px;
+      padding: 16px;
+      background: #1e293b;
+      border-radius: 8px;
+    }
+    .test-links-panel a {
+      color: #38bdf8;
+      margin-right: 18px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>GLKVM Simulation Console</h1>
+      <small style="color: #64748b;">Simulates glkvm.local for testing the GLKVM Linker extension</small>
+    </div>
+    <span class="badge">Online (Host: glkvm.local)</span>
+  </header>
+
+  <!-- Toolbar with the exact "Ctrl-L + L" button -->
+  <div class="toolbar">
+    <span style="font-size: 12px; color: #94a3b8; margin-right: 8px;">Macros:</span>
+    <button id="btn-ctrl-l" class="kvm-btn">Ctrl-L + L</button>
+    <button class="kvm-btn">Ctrl-Alt-Del</button>
+    <button class="kvm-btn">Alt-Tab</button>
+    <button class="kvm-btn">PrtScn</button>
+  </div>
+
+  <!-- Screen area with modal -->
+  <div class="screen-area">
+    <div class="remote-display" id="screen-status">
+      Remote Screen Display (Idle)
+    </div>
+
+    <!-- Modal containing textarea and "Paste To Remote Device" button -->
+    <div id="modal-container" class="modal-overlay">
+      <div class="modal-card">
+        <h2 class="modal-title">Paste to Remote Target</h2>
+        <textarea id="remote-textarea" class="clipboard-input" placeholder="Paste or type text to send..."></textarea>
+        <div style="display: flex; justify-content: flex-end;">
+          <button id="btn-paste-remote" class="btn-paste-remote">Paste To Remote Device</button>
+          <button id="btn-close-modal" class="btn-close">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Received Paste Events Log -->
+  <div class="log-panel">
+    <div class="log-title">Remote Device Input Log:</div>
+    <ul id="log-list" class="log-list">
+      <li style="color: #64748b;">Waiting for input from GLKVM Linker extension...</li>
+    </ul>
+  </div>
+
+  <!-- Sample hyperlinks for manual right-click context menu testing -->
+  <div class="test-links-panel">
+    <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Sample Hyperlinks to Test:</div>
+    <p style="font-size: 12px; color: #94a3b8; margin-bottom: 12px;">Right-click any link below and select "Send to GLKVM":</p>
+    <div>
+      <a href="https://github.com/gl-inet/gl-inet-docs">GL.iNet Documentation</a>
+      <a href="https://pikvm.org">PiKVM Open Source</a>
+      <a href="https://www.kernel.org">Linux Kernel Archives</a>
+      <a href="https://google.com">Google Search</a>
+    </div>
+  </div>
+
+  <script>
+    const btnCtrlL = document.getElementById('btn-ctrl-l');
+    const modalContainer = document.getElementById('modal-container');
+    const remoteTextarea = document.getElementById('remote-textarea');
+    const btnPasteRemote = document.getElementById('btn-paste-remote');
+    const btnCloseModal = document.getElementById('btn-close-modal');
+    const logList = document.getElementById('log-list');
+    const screenStatus = document.getElementById('screen-status');
+
+    let logCount = 0;
+
+    // Step 3 trigger: Click "Ctrl-L + L"
+    btnCtrlL.addEventListener('click', () => {
+      console.log('["Ctrl-L + L" clicked]');
+      modalContainer.classList.add('active');
+      remoteTextarea.focus();
+    });
+
+    btnCloseModal.addEventListener('click', () => {
+      modalContainer.classList.remove('active');
+    });
+
+    // Step 5 trigger: Click "Paste To Remote Device"
+    btnPasteRemote.addEventListener('click', () => {
+      const text = remoteTextarea.value;
+      window.__lastTypedText = text;
+      console.log('["Paste To Remote Device" clicked] Text:', text);
+
+      if (logCount === 0) {
+        logList.innerHTML = '';
+      }
+      logCount++;
+
+      const timestamp = new Date().toLocaleTimeString();
+      const li = document.createElement('li');
+      li.className = 'log-item';
+      li.textContent = `[${timestamp}] Remote device typed: "${text}"`;
+      logList.prepend(li);
+
+      screenStatus.textContent = `Last typed input: "${text}"`;
+      screenStatus.style.color = '#38bdf8';
+
+      // Hide modal after sending, similar to GLKVM
+      setTimeout(() => {
+        modalContainer.classList.remove('active');
+        remoteTextarea.value = '';
+      }, 300);
+    });
+  </script>
+</body>
+</html>
