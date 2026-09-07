@@ -23,40 +23,7 @@ function findElementByText(targetText, container = document) {
   const clickables = container.querySelectorAll('button, [role="button"], a, input[type="button"], input[type="submit"]');
   for (const el of clickables) {
     if (norm(el.textContent) === target || norm(el.value) === target) {
-      console.log("found here");
       return el;
-    }
-  }
-
-  console.log("going to fallback");
-
-  // 2. Search all elements, finding the deepest element with the exact text
-  const all = container.querySelectorAll('*');
-  for (const el of all) {
-    if (norm(el.textContent) === target) {
-      let childHasText = false;
-      for (const child of el.children) {
-        if (norm(child.textContent) === target) {
-          childHasText = true;
-          break;
-        }
-      }
-      if (!childHasText) {
-        return el.closest('button, [role="button"], a') || el;
-      }
-    }
-  }
-
-  // 3. aria-label or title attributes
-  const attrMatch = container.querySelector(`[aria-label="${targetText}"], [title="${targetText}"]`);
-  if (attrMatch) return attrMatch;
-
-  // 4. Case-insensitive match fallback
-  const targetLower = target.toLowerCase();
-  const candidates = container.querySelectorAll('button, [role="button"], a, div, span');
-  for (const el of candidates) {
-    if (norm(el.textContent).toLowerCase() === targetLower) {
-      return el.closest('button, [role="button"], a') || el;
     }
   }
 
