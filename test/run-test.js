@@ -36,6 +36,11 @@ async function run() {
   const mockHtmlPath = path.resolve(__dirname, 'mock-glkvm.html');
   const bgJsPath = path.resolve(__dirname, '../src/background.js');
   const bgContent = fs.readFileSync(bgJsPath, 'utf8');
+  const fnMatch = bgContent.match(/async function sendLinkToGlkvm\([^\)]*\)[\s\S]*?\n\}/);
+  if (!fnMatch) {
+    throw new Error('Could not extract sendLinkToGlkvm from background.js');
+  }
+  const fnCode = fnMatch[0];
 
   console.log('Launching headless Chrome with clean profile...');
   const chrome = spawn('google-chrome', [
@@ -74,18 +79,12 @@ async function run() {
     // Wait for DOM to settle
     await sleep(500);
 
-    // 1. Inject background.js into mock page (defines top-level helpers and sendLinkToGlkvm)
-    console.log('Injecting background.js into mock page...');
-    await sendCdp('Runtime.evaluate', {
-      expression: bgContent
-    });
-
     const testUrl = 'https://example.com/tested-glkvm-link?token=abc-123';
-    console.log(`Executing sendLinkToGlkvm (from background.js) with test URL: ${testUrl}`);
+    console.log(`Executing self-contained sendLinkToGlkvm with test URL: ${testUrl}`);
 
     const evalResult = await sendCdp('Runtime.evaluate', {
       expression: `
-        sendLinkToGlkvm('${testUrl}').then(res => JSON.stringify(res));
+        (${fnCode})('${testUrl}').then(res => JSON.stringify(res));
       `,
       awaitPromise: true,
       returnByValue: true
