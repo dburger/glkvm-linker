@@ -200,9 +200,6 @@ async function sendLinkToGlkvm(url, appendNewline = true) {
   }
   clickElement(ctrlLBtn);
 
-  // Allow DOM/modal to open
-  await new Promise(r => setTimeout(r, 200));
-
   // -------------------------------------------------------------
   // Step 4: Paste URL into textarea component
   // -------------------------------------------------------------
@@ -215,9 +212,6 @@ async function sendLinkToGlkvm(url, appendNewline = true) {
   }
   const textToPaste = (appendNewline && !url.endsWith('\n')) ? (url + '\n') : url;
   pasteIntoTextarea(textarea, textToPaste);
-
-  // Allow input state updates to settle
-  await new Promise(r => setTimeout(r, 150));
 
   // -------------------------------------------------------------
   // Step 5: Click button with exact text "Paste To Remote Device"
