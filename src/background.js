@@ -290,9 +290,7 @@ async function processLink(url) {
       return { success: false, error: err.message || String(err) };
     }
   } finally {
-    setTimeout(() => {
-      isProcessingLink = false;
-    }, 1200);
+    isProcessingLink = false;
   }
 }
 
