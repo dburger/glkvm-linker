@@ -2,6 +2,7 @@
 
 const CONTEXT_MENU_ID = "glkvm-send-link";
 const DEFAULT_DOMAIN = "glkvm.local";
+const NOTIFICATION_ID = "glkvm-status";
 
 // Register Context Menu
 chrome.runtime.onInstalled.addListener(() => {
@@ -77,10 +78,10 @@ function setBadge(text, color = "#0ea5e9", durationMs = 3000) {
   } catch {}
 }
 
-// Show notification
+// Show notification (uses fixed ID to update in-place rather than stack)
 function showNotification(title, message) {
   try {
-    chrome.notifications.create({
+    chrome.notifications.create(NOTIFICATION_ID, {
       type: "basic",
       iconUrl: "icons/icon128.png",
       title: title || "GLKVM Linker",
