@@ -30,81 +30,10 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     showNotification("No URL Found", "The clicked element did not contain a valid hyperlink URL.");
     return;
   }
-  await processLink(linkUrl, tab);
+  await processLink(linkUrl);
 });
 
-// Setup offscreen document for clipboard operations
-let offscreenCreationPromise = null;
-async function setupOffscreenDocument(path = "offscreen.html") {
-  const offscreenUrl = chrome.runtime.getURL(path);
-  const existingContexts = await chrome.runtime.getContexts({
-    contextTypes: ["OFFSCREEN_DOCUMENT"],
-    documentUrls: [offscreenUrl]
-  });
-
-  if (existingContexts.length > 0) {
-    return;
-  }
-
-  if (offscreenCreationPromise) {
-    await offscreenCreationPromise;
-  } else {
-    offscreenCreationPromise = chrome.offscreen.createDocument({
-      url: path,
-      reasons: ["CLIPBOARD"],
-      justification: "Copy hyperlink URL to system clipboard"
-    });
-    await offscreenCreationPromise;
-    offscreenCreationPromise = null;
-  }
-}
-
-// 1. Copy URL to system clipboard
-async function copyToClipboard(text, sourceTab) {
-  let copied = false;
-
-  // Try offscreen document first
-  try {
-    await setupOffscreenDocument();
-    const res = await chrome.runtime.sendMessage({
-      target: "offscreen",
-      type: "copy-to-clipboard",
-      data: text
-    });
-    if (res && res.success) {
-      copied = true;
-    }
-  } catch (err) {
-    console.warn("Offscreen clipboard copy failed:", err);
-  }
-
-  // Also try in source tab if feasible
-  if (!copied && sourceTab && sourceTab.id && sourceTab.url && !sourceTab.url.startsWith("chrome")) {
-    try {
-      await chrome.scripting.executeScript({
-        target: { tabId: sourceTab.id },
-        func: (urlText) => {
-          try {
-            navigator.clipboard.writeText(urlText).catch(() => {
-              const ta = document.createElement("textarea");
-              ta.value = urlText;
-              document.body.appendChild(ta);
-              ta.select();
-              document.execCommand("copy");
-              document.body.removeChild(ta);
-            });
-          } catch {}
-        },
-        args: [text]
-      });
-      copied = true;
-    } catch {}
-  }
-
-  return copied;
-}
-
-// 2. Locate the tab with domain glkvm.local
+// Locate the tab with domain glkvm.local
 async function findGlkvmTab(targetDomain = DEFAULT_DOMAIN) {
   const domain = (targetDomain || DEFAULT_DOMAIN).toLowerCase().trim();
   const tabs = await chrome.tabs.query({});
@@ -368,7 +297,7 @@ async function automateGlkvmActions(url, appendNewline = true) {
 // Master handler for sending a link to GLKVM
 let isProcessingLink = false;
 
-async function processLink(url, sourceTab) {
+async function processLink(url) {
   if (isProcessingLink) {
     console.warn("GLKVM Linker: Request already in progress, ignoring duplicate call.");
     return { success: false, error: "Already processing request" };
@@ -378,10 +307,7 @@ async function processLink(url, sourceTab) {
   try {
     const settings = await getSettings();
 
-    // 1. Copy URL to clipboard
-    await copyToClipboard(url, sourceTab);
-
-    // 2. Locate the tab with domain glkvm.local
+    // 1. Locate the tab with domain glkvm.local
     const targetTab = await findGlkvmTab(settings.glkvmDomain);
     if (!targetTab) {
       setBadge("ERR", "#ef4444");
@@ -457,7 +383,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "SEND_URL_TO_GLKVM") {
-    processLink(message.url, null).then(res => {
+    processLink(message.url).then(res => {
       sendResponse(res);
     });
     return true; // async response

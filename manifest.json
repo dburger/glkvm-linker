@@ -7,10 +7,8 @@
     "contextMenus",
     "tabs",
     "scripting",
-    "clipboardWrite",
     "notifications",
-    "storage",
-    "offscreen"
+    "storage"
   ],
   "host_permissions": [
     "*://glkvm.local/*",

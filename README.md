@@ -6,13 +6,12 @@
 
 ## What It Does
 
-When you right-click on any hyperlink and select **"Send to GLKVM"**, the extension automatically performs the following five actions:
+When you right-click on any hyperlink and select **"Send to GLKVM"**, the extension automatically performs the following actions:
 
-1. **Copies the URL** to your local system clipboard (using an MV3 offscreen document fallback).
-2. **Locates the tab** with the domain `glkvm.local` (or a custom domain/IP configured in settings).
-3. **Clicks the button** with the exact text `"Ctrl-L + L"` on the GLKVM tab.
-4. **Pastes the copied URL with a trailing newline (`\n`)** into the `<textarea>` component on that tab (triggering appropriate React/Vue DOM events and simulating an Enter keystroke on the remote device).
-5. **Clicks the button** with the exact text `"Paste To Remote Device"` on that tab.
+1. **Locates the tab** with the domain `glkvm.local` (or a custom domain/IP configured in settings).
+2. **Clicks the button** with the exact text `"Ctrl-L + L"` on the GLKVM tab.
+3. **Fills the URL with a trailing newline (`\n`)** directly into the `<textarea>` component on that tab (triggering appropriate DOM events and simulating an Enter keystroke on the remote device).
+4. **Clicks the button** with the exact text `"Paste To Remote Device"` on that tab.
 
 ---
 
@@ -22,8 +21,6 @@ When you right-click on any hyperlink and select **"Send to GLKVM"**, the extens
 glkvm-linker/
 ├── manifest.json       # Manifest V3 extension configuration
 ├── background.js       # Background service worker (context menu & tab automation)
-├── offscreen.html      # Offscreen document for clipboard operations
-├── offscreen.js        # Offscreen script handling clipboard write
 ├── popup/              # Extension action popup
 │   ├── popup.html      # Status monitor, quick send, and configuration UI
 │   ├── popup.css       # Dark-mode styling matching KVM consoles
@@ -60,7 +57,7 @@ glkvm-linker/
 1. Ensure your GLKVM web management interface is open in a browser tab (`http://glkvm.local`).
 2. Browse any webpage and locate a hyperlink you want to open or paste into your remote computer.
 3. Right-click the hyperlink and select **"Send to GLKVM"** from the context menu.
-4. The extension will automatically copy the link and relay it through GLKVM to the remote device.
+4. The extension will automatically relay the link directly into GLKVM to paste onto the remote device.
 5. An extension badge (`OK`) and desktop notification will confirm delivery.
 
 ---
