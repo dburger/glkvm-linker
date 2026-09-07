@@ -127,47 +127,24 @@ async function sendLinkToGlkvm(url, appendNewline = true) {
 
   function clickElement(el) {
     if (!el) return;
-    try {
-      if (typeof el.scrollIntoView === 'function') {
-        el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-      }
-      if (typeof el.focus === 'function') {
-        el.focus();
-      }
-    } catch {}
-
-    // Using native el.click() dispatches exactly one standard click event
-    if (typeof el.click === 'function') {
-      el.click();
-    } else {
-      el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-    }
+    el.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+    el.focus?.();
+    el.click();
   }
 
   function findTextarea(root = document) {
     if (!root) return null;
-    const textareas = Array.from(root.querySelectorAll('textarea'));
-    if (textareas.length === 0) return null;
-
-    // Filter for visible elements
-    const visible = textareas.filter(ta => {
-      const style = window.getComputedStyle(ta);
-      if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
-        return false;
-      }
+    for (const ta of root.querySelectorAll('textarea')) {
       const rect = ta.getBoundingClientRect();
-      return rect.width > 0 && rect.height > 0;
-    });
-
-    if (visible.length === 1) return visible[0];
-    return textareas[0];
+      if (rect.width > 0 && rect.height > 0) {
+        return ta;
+      }
+    }
+    return null;
   }
 
   function pasteIntoTextarea(textarea, value) {
-    try {
-      textarea.focus();
-    } catch {}
-
+    textarea.focus?.();
     textarea.value = value;
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
     textarea.dispatchEvent(new Event('change', { bubbles: true }));
