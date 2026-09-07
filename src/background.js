@@ -8,9 +8,6 @@ chrome.runtime.onInstalled.addListener(() => {
   setupContextMenu();
 });
 
-chrome.runtime.onStartup.addListener(() => {
-  setupContextMenu();
-});
 
 function setupContextMenu() {
   chrome.contextMenus.removeAll(() => {
