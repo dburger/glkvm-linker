@@ -56,15 +56,11 @@ async function findGlkvmTab(targetDomain = DEFAULT_DOMAIN) {
 
 // Helper to get stored settings
 async function getSettings() {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get({
-      glkvmDomain: DEFAULT_DOMAIN,
-      switchTab: false,
-      showNotifications: true,
-      appendNewline: true
-    }, (items) => {
-      resolve(items);
-    });
+  return await chrome.storage.sync.get({
+    glkvmDomain: DEFAULT_DOMAIN,
+    switchTab: false,
+    showNotifications: true,
+    appendNewline: true
   });
 }
 
@@ -293,23 +289,19 @@ async function processLink(url) {
 
 // Messages from popup (status checks, manual paste, etc.)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "CHECK_GLKVM_TAB") {
-    getSettings().then(settings => {
-      findGlkvmTab(settings.glkvmDomain).then(tab => {
-        sendResponse({
-          found: !!tab,
-          tab: tab ? { id: tab.id, title: tab.title, url: tab.url } : null,
-          domain: settings.glkvmDomain
-        });
+  (async () => {
+    if (message.type === "CHECK_GLKVM_TAB") {
+      const settings = await getSettings();
+      const tab = await findGlkvmTab(settings.glkvmDomain);
+      sendResponse({
+        found: !!tab,
+        tab: tab ? { id: tab.id, title: tab.title, url: tab.url } : null,
+        domain: settings.glkvmDomain
       });
-    });
-    return true; // async response
-  }
-
-  if (message.type === "SEND_URL_TO_GLKVM") {
-    processLink(message.url).then(res => {
+    } else if (message.type === "SEND_URL_TO_GLKVM") {
+      const res = await processLink(message.url);
       sendResponse(res);
-    });
-    return true; // async response
-  }
+    }
+  })();
+  return true; // Keep message channel open for async response
 });

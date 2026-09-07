@@ -20,33 +20,28 @@ document.addEventListener("DOMContentLoaded", async () => {
   let currentTargetDomain = "glkvm.local";
 
   // Load saved settings
-  chrome.storage.sync.get({
+  const items = await chrome.storage.sync.get({
     glkvmDomain: "glkvm.local",
     switchTab: false,
     showNotifications: true,
     appendNewline: true
-  }, (items) => {
-    currentTargetDomain = items.glkvmDomain || "glkvm.local";
-    domainInput.value = currentTargetDomain;
-    switchTabToggle.checked = items.switchTab;
-    appendNewlineToggle.checked = items.appendNewline !== false;
-    notifToggle.checked = items.showNotifications;
-    checkTabStatus();
   });
+  currentTargetDomain = items.glkvmDomain || "glkvm.local";
+  domainInput.value = currentTargetDomain;
+  switchTabToggle.checked = items.switchTab;
+  appendNewlineToggle.checked = items.appendNewline !== false;
+  notifToggle.checked = items.showNotifications;
+  checkTabStatus();
 
   // Check tab status
-  function checkTabStatus() {
+  async function checkTabStatus() {
     statusContainer.className = "status-box status-loading";
     statusText.textContent = "Checking for GLKVM tab...";
     tabInfo.classList.add("hidden");
     openContainer.classList.add("hidden");
 
-    chrome.runtime.sendMessage({ type: "CHECK_GLKVM_TAB" }, (response) => {
-      if (chrome.runtime.lastError) {
-        statusContainer.className = "status-box status-disconnected";
-        statusText.textContent = "Unable to query tabs";
-        return;
-      }
+    try {
+      const response = await chrome.runtime.sendMessage({ type: "CHECK_GLKVM_TAB" });
 
       if (response && response.found && response.tab) {
         statusContainer.className = "status-box status-connected";
@@ -59,7 +54,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         statusText.textContent = `No tab with "${response?.domain || currentTargetDomain}" found`;
         openContainer.classList.remove("hidden");
       }
-    });
+    } catch {
+      statusContainer.className = "status-box status-disconnected";
+      statusText.textContent = "Unable to query tabs";
+    }
   }
 
   // Refresh status button
@@ -78,31 +76,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Save Settings
-  saveBtn.addEventListener("click", () => {
+  saveBtn.addEventListener("click", async () => {
     const newDomain = domainInput.value.trim() || "glkvm.local";
     const switchTab = switchTabToggle.checked;
     const appendNewline = appendNewlineToggle.checked;
     const showNotifications = notifToggle.checked;
 
-    chrome.storage.sync.set({
+    await chrome.storage.sync.set({
       glkvmDomain: newDomain,
       switchTab: switchTab,
       appendNewline: appendNewline,
       showNotifications: showNotifications
-    }, () => {
-      currentTargetDomain = newDomain;
-      settingsStatus.className = "result-msg success";
-      settingsStatus.textContent = "Settings saved successfully!";
-      settingsStatus.classList.remove("hidden");
-      setTimeout(() => {
-        settingsStatus.classList.add("hidden");
-      }, 2500);
-      checkTabStatus();
     });
+
+    currentTargetDomain = newDomain;
+    settingsStatus.className = "result-msg success";
+    settingsStatus.textContent = "Settings saved successfully!";
+    settingsStatus.classList.remove("hidden");
+    setTimeout(() => {
+      settingsStatus.classList.add("hidden");
+    }, 2500);
+    checkTabStatus();
   });
 
   // Send Test URL
-  sendTestBtn.addEventListener("click", () => {
+  sendTestBtn.addEventListener("click", async () => {
     const url = testUrlInput.value.trim();
     if (!url) {
       testResult.className = "result-msg error";
@@ -115,12 +113,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     sendTestBtn.textContent = "Sending...";
     testResult.classList.add("hidden");
 
-    chrome.runtime.sendMessage({
-      type: "SEND_URL_TO_GLKVM",
-      url: url
-    }, (res) => {
-      sendTestBtn.disabled = false;
-      sendTestBtn.textContent = "Send";
+    try {
+      const res = await chrome.runtime.sendMessage({
+        type: "SEND_URL_TO_GLKVM",
+        url: url
+      });
 
       if (res && res.success) {
         testResult.className = "result-msg success";
@@ -129,7 +126,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         testResult.className = "result-msg error";
         testResult.textContent = (res && res.error) || "Failed to send URL to GLKVM.";
       }
+    } catch (err) {
+      testResult.className = "result-msg error";
+      testResult.textContent = err?.message || "Failed to send URL to GLKVM.";
+    } finally {
+      sendTestBtn.disabled = false;
+      sendTestBtn.textContent = "Send";
       testResult.classList.remove("hidden");
-    });
+    }
   });
 });
