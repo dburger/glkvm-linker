@@ -75,9 +75,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(checkTabStatus, 1000);
   });
 
+  function extractHostname(input) {
+    const trimmed = (input || "").trim().toLowerCase();
+    if (!trimmed) return "glkvm.local";
+    try {
+      const url = trimmed.includes("://") ? new URL(trimmed) : new URL(`http://${trimmed}`);
+      return url.hostname || trimmed;
+    } catch {
+      return trimmed;
+    }
+  }
+
   // Save Settings
   saveBtn.addEventListener("click", async () => {
-    const newDomain = domainInput.value.trim() || "glkvm.local";
+    const newDomain = extractHostname(domainInput.value);
+    domainInput.value = newDomain;
     const switchTab = switchTabToggle.checked;
     const appendNewline = appendNewlineToggle.checked;
     const showNotifications = notifToggle.checked;
