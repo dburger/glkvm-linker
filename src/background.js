@@ -135,13 +135,8 @@ async function sendLinkToGlkvm(url, appendNewline = true) {
 
   function findTextarea(root = document) {
     if (!root) return null;
-    for (const ta of root.querySelectorAll('textarea')) {
-      const rect = ta.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        return ta;
-      }
-    }
-    return null;
+    const tas = root.querySelectorAll('textarea');
+    return tas.length > 0 ? tas[0] : null;
   }
 
   function pasteIntoTextarea(textarea, value) {
