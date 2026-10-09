@@ -276,3 +276,45 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   })();
   return true; // Keep message channel open for async response
 });
+
+// Native messaging bridge for the command-line sender (cli/). The host relays
+// URLs from `glkvm <URL>` and gets back processLink()'s result. If the
+// host is not installed this quietly does nothing; the rest of the extension
+// is unaffected. While the port is open, Chrome keeps this worker alive.
+const NATIVE_HOST = "com.dburger.glkvm_linker";
+let nativeRetryMs = 5000;
+
+function connectNativeHost() {
+  let port;
+  try {
+    port = chrome.runtime.connectNative(NATIVE_HOST);
+  } catch (err) {
+    console.debug("GLKVM native host unavailable:", err);
+    return;
+  }
+  port.onMessage.addListener(async (msg) => {
+    if (!msg || msg.type !== "SEND_URL_TO_GLKVM") return;
+    nativeRetryMs = 5000; // the host is working
+    let res;
+    try {
+      res = await processLink(msg.url);
+    } catch (err) {
+      res = { success: false, error: err.message || String(err) };
+    }
+    try {
+      port.postMessage({ id: msg.id, ...res });
+    } catch {}
+  });
+  port.onDisconnect.addListener(() => {
+    const reason = chrome.runtime.lastError?.message || "";
+    console.debug("GLKVM native host disconnected:", reason);
+    // Not installed or not allowed: don't keep trying.
+    if (/not found|forbidden/i.test(reason)) return;
+    setTimeout(connectNativeHost, nativeRetryMs);
+    nativeRetryMs = Math.min(nativeRetryMs * 2, 5 * 60 * 1000);
+  });
+}
+
+// Wake the worker when the browser starts so the bridge connects right away.
+chrome.runtime.onStartup.addListener(() => {});
+connectNativeHost();

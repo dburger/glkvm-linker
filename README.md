@@ -34,6 +34,9 @@ glkvm-linker/
 ├── test/               # Local testing suite
 │   ├── mock-glkvm.html # Mock GLKVM web console for verification
 │   └── run-test.js     # Automated headless Chrome CDP test runner
+├── cli/                # Go command-line sender (sends URLs to the extension)
+│   ├── go.mod
+│   └── main.go
 └── README.md
 ```
 
@@ -74,6 +77,32 @@ Click the **GLKVM Linker** icon in your Chrome toolbar to open the popup:
   - **Switch to GLKVM Tab**: Optional toggle to focus the GLKVM tab after sending.
   - **Append Newline**: Enabled by default to automatically press Enter when sending.
   - **Notification Toasts**: Toggle desktop notifications on/off.
+
+---
+
+## Command-line Sender
+
+The `cli/` directory contains `glkvm`, a Go program that sends a URL to the extension from the command line. It uses [Chrome native messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging), so it needs no remote debugging, approval prompt, or browser window.
+
+One-time setup:
+
+```bash
+cd cli
+go build -o ~/bin/glkvm .   # any directory on your PATH
+glkvm install                # registers the binary with Chrome
+```
+
+Then reload the extension at `chrome://extensions`. Run `glkvm install` again if you move the binary. Set `CHROME_USER_DATA_DIR` if you use a Chrome profile directory other than `~/.config/google-chrome`.
+
+Usage:
+
+```bash
+glkvm https://example.com
+```
+
+It prints `Sent to GLKVM: <URL>` on success, or exits non-zero with the extension's error (for example, `Tab not found`).
+
+How it works: the extension starts `glkvm` as a native messaging host when it loads. The host listens on a unix socket (`$XDG_RUNTIME_DIR/glkvm-linker.sock`), and `glkvm <URL>` sends the URL through it to the extension, which handles it like the **Send to GLKVM** menu item.
 
 ---
 
